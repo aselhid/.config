@@ -1,0 +1,3 @@
+os:
+  edit: 'nvr -O $(pwd)/{{filename}}'
+  editAtLine: 'nvr -O +{{line}} $(pwd)/{{filename}}'
