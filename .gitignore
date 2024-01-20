@@ -1,0 +1,13 @@
+*
+!.gitignore
+!lazygit/
+!lazygit/**/*
+!nvim/
+!nvim/**/*
+!config.yml
+!zshrc/
+!zshrc/**/*
+!alacritty/
+!alacritty/**/*
+!zellij/
+!zellij/**/*
