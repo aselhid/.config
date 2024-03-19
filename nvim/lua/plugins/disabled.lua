@@ -9,6 +9,13 @@ return {
   },
   {
     "folke/flash.nvim",
+    opts = {
+      modes = {
+        search = {
+          enabled = false,
+        },
+      },
+    },
     keys = {
       -- disable the default flash keymap
       { "S", mode = { "n", "o", "x" }, false },

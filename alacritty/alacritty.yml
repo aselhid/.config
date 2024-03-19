@@ -6,6 +6,8 @@ key_bindings:
   - { key: Back, mods: Command, chars: "\x15" } # Delete line
   - { key: Back, mods: Alt, chars: "\x1b\x7f" } # Delete word
 
+dynamic_padding: true
+
 font:
   normal:
     family: DroidSansMono Nerd Font

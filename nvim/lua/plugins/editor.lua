@@ -1,14 +1,13 @@
+local Util = require("lazyvim.util")
+
 return {
-  {
-    "MunsMan/kitty-navigator.nvim",
-  },
   {
     "nvim-neo-tree/neo-tree.nvim",
     keys = {
       {
         "<leader>fe",
         function()
-          require("neo-tree.command").execute({ toggle = false, dir = require("lazyvim.util").root.get() })
+          require("neo-tree.command").execute({ toggle = false, dir = Util.root() })
         end,
         desc = "Explorer NeoTree (root dir)",
       },
