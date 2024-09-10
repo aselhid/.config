@@ -5,13 +5,14 @@ if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
-vim.lsp.set_log_level("debug")
+-- vim.lsp.set_log_level("debug")
 
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
     { import = "lazyvim.plugins.extras.util.project" },
+    { import = "lazyvim.plugins.extras.coding.luasnip" },
     -- import any extras modules here
     -- language
     { import = "lazyvim.plugins.extras.lang.typescript" },
@@ -19,8 +20,9 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.rust" },
     -- formatter
     { import = "lazyvim.plugins.extras.formatting.prettier" },
+    { import = "lazyvim.plugins.extras.coding.neogen" },
     -- linter
-    -- { import = "lazyvim.plugins.extras.linting.eslint" },
+    { import = "lazyvim.plugins.extras.linting.eslint" },
     -- debugger
     { import = "lazyvim.plugins.extras.dap.core" },
     -- { import = "lazyvim.plugins.extras.lang.json" },

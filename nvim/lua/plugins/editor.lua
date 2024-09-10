@@ -2,6 +2,36 @@ local Util = require("lazyvim.util")
 
 return {
   {
+    "willothy/flatten.nvim",
+    config = true,
+    -- or pass configuration with
+    -- opts = {  }
+    -- Ensure that it runs first to minimize delay when opening file from terminal
+    lazy = false,
+    priority = 1001,
+  },
+  {
+    "sQVe/sort.nvim",
+  },
+  {
+    "aselhid/aggressive-snippets",
+    branch = "main",
+    config = function()
+      require("luasnip.loaders.from_vscode").lazy_load()
+    end,
+  },
+  -- {
+  --   "L3MON4D3/LuaSnip",
+  --   dependencies = {
+  --     {
+  --       "aselhid/aggressive-snippets",
+  --       config = function()
+  --         require("luasnip.loaders.from_vscode").lazy_load()
+  --       end,
+  --     },
+  --   },
+  -- },
+  {
     "nvim-neo-tree/neo-tree.nvim",
     keys = {
       {
@@ -24,7 +54,7 @@ return {
     opts = {
       window = {
         position = "right",
-        width = 50,
+        width = 70,
       },
       filesystem = {
         filtered_items = {
