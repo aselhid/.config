@@ -3,12 +3,6 @@ return {
   { "nvim-treesitter/nvim-treesitter-context", enabled = false },
   { "rafamadriz/friendly-snippets", enabled = false },
   {
-    "L3MON4D3/LuaSnip",
-    keys = function()
-      return {}
-    end,
-  },
-  {
     "folke/flash.nvim",
     opts = {
       modes = {

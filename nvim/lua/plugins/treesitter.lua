@@ -1,10 +1,4 @@
 return {
-  -- {
-  --   "nvim-treesitter/nvim-treesitter-context",
-  --   opts = {
-  --     separator = "-",
-  --   },
-  -- },
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
