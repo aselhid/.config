@@ -6,3 +6,4 @@
 #
 
 bindkey -v
+eval "$(zoxide init zsh)"
