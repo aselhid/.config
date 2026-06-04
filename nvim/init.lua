@@ -354,6 +354,7 @@ do
       { '<leader>t', group = '[T]oggle' },
       { '<leader>g', group = '[G]it', mode = { 'n', 'v' } },
       { '<leader>a', group = '[A]I' },
+      { '<leader>b', group = '[B]uffer' },
       { '<leader>n', group = '[N]oice' },
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
@@ -364,7 +365,7 @@ do
   -- Change the name of the colorscheme plugin below, and then
   -- change the command under that to load whatever the name of that colorscheme is.
   --
-  -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  -- If you want to see what colorschemes are already installed, run `:lua Snacks.picker.colorschemes()`.
   vim.pack.add { gh 'folke/tokyonight.nvim' }
   ---@diagnostic disable-next-line: missing-fields
   require('tokyonight').setup {
@@ -476,48 +477,78 @@ end
 
 -- ============================================================
 -- SECTION 4: SEARCH & NAVIGATION
--- snacks.picker keymaps and LSP picker mappings
+-- snacks.picker keymaps, LSP picker mappings
 -- ============================================================
 do
-  vim.keymap.set('n', '<leader>sh', function() Snacks.picker.help() end, { desc = '[S]earch [H]elp' })
-  vim.keymap.set('n', '<leader>sk', function() Snacks.picker.keymaps() end, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set('n', '<leader>sf', function() Snacks.picker.files() end, { desc = '[S]earch [F]iles' })
-  vim.keymap.set('n', '<leader>ss', function() Snacks.picker.pickers() end, { desc = '[S]earch [S]elect Picker' })
-  vim.keymap.set({ 'n', 'v' }, '<leader>sw', function() Snacks.picker.grep_word() end, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', function() Snacks.picker.grep() end, { desc = '[S]earch by [G]rep' })
-  vim.keymap.set('n', '<leader>sd', function() Snacks.picker.diagnostics() end, { desc = '[S]earch [D]iagnostics' })
-  vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc = '[S]earch [R]esume' })
-  vim.keymap.set('n', '<leader>s.', function() Snacks.picker.recent() end, { desc = '[S]earch Recent Files ("." for repeat)' })
-  vim.keymap.set('n', '<leader>sc', function() Snacks.picker.commands() end, { desc = '[S]earch [C]ommands' })
-  vim.keymap.set('n', '<leader><leader>', function() Snacks.picker.buffers() end, { desc = '[ ] Find existing buffers' })
-  vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
-  vim.keymap.set('n', '<leader>s/', function() Snacks.picker.grep_buffers() end, { desc = '[S]earch [/] in Open Files' })
-  vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
+  -- [[ Fuzzy Finder (files, lsp, etc) ]]
+  --
+  -- snacks.picker is a fuzzy finder bundled with snacks.nvim. The plugin itself
+  -- is installed and configured in lua/custom/plugins/snacks.lua.
+  --
+  -- See `:help snacks-picker` and https://github.com/folke/snacks.nvim/blob/main/docs/picker.md
+  -- for the full list of available sources.
 
-  -- Add LSP pickers when an LSP attaches to a buffer.
+  local picker = function(name, opts)
+    return function() Snacks.picker[name](opts) end
+  end
+
+  vim.keymap.set('n', '<leader>sh', picker 'help', { desc = '[S]earch [H]elp' })
+  vim.keymap.set('n', '<leader>sk', picker 'keymaps', { desc = '[S]earch [K]eymaps' })
+  vim.keymap.set('n', '<leader>sf', picker 'files', { desc = '[S]earch [F]iles' })
+  vim.keymap.set('n', '<leader>ss', picker 'pickers', { desc = '[S]earch [S]elect Picker' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>sw', picker 'grep_word', { desc = '[S]earch current [W]ord' })
+  vim.keymap.set('n', '<leader>sg', picker 'grep', { desc = '[S]earch by [G]rep' })
+  vim.keymap.set('n', '<leader>sd', picker 'diagnostics', { desc = '[S]earch [D]iagnostics' })
+  vim.keymap.set('n', '<leader>sR', picker 'resume', { desc = '[S]earch [R]esume' })
+  vim.keymap.set('n', '<leader>s.', picker 'recent', { desc = '[S]earch Recent Files ("." for repeat)' })
+  vim.keymap.set('n', '<leader>sc', picker 'commands', { desc = '[S]earch [C]ommands' })
+  vim.keymap.set('n', '<leader><leader>', picker 'buffers', { desc = '[ ] Find existing buffers' })
+
+  -- LSP pickers attached per-buffer when an LSP client connects.
   vim.api.nvim_create_autocmd('LspAttach', {
-    group = vim.api.nvim_create_augroup('snacks-lsp-attach', { clear = true }),
+    group = vim.api.nvim_create_augroup('snacks-picker-lsp-attach', { clear = true }),
     callback = function(event)
       local buf = event.buf
 
       local map = function(keys, func, desc) vim.keymap.set('n', keys, func, { buffer = buf, desc = desc }) end
 
-      map('gd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
-      map('grd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
+      -- Go to definition (where a variable/function is defined). Press <C-t> to jump back.
+      map('gd', picker 'lsp_definitions', '[G]oto [D]efinition')
+      map('grd', picker 'lsp_definitions', '[G]oto [D]efinition')
 
-      map('gr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
-      map('grr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
+      -- Find all references to the symbol under cursor.
+      map('gr', picker 'lsp_references', '[G]oto [R]eferences')
+      map('grr', picker 'lsp_references', '[G]oto [R]eferences')
 
-      map('gi', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
-      map('gri', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
+      -- Go to implementation (useful for interfaces/abstract types).
+      map('gi', picker 'lsp_implementations', '[G]oto [I]mplementation')
+      map('gri', picker 'lsp_implementations', '[G]oto [I]mplementation')
 
-      map('gy', function() Snacks.picker.lsp_type_definitions() end, '[G]oto T[y]pe Definition')
-      map('grt', function() Snacks.picker.lsp_type_definitions() end, '[G]oto T[y]pe Definition')
+      -- Go to type definition (the type of the symbol, not where it's defined).
+      map('gy', picker 'lsp_type_definitions', '[G]oto T[y]pe Definition')
+      map('grt', picker 'lsp_type_definitions', '[G]oto T[y]pe Definition')
 
-      map('gO', function() Snacks.picker.lsp_symbols() end, 'Open Document Symbols')
-      map('gW', function() Snacks.picker.lsp_workspace_symbols() end, 'Open Workspace Symbols')
+      -- Fuzzy find all the symbols in your current document.
+      map('gO', picker 'lsp_symbols', 'Open Document Symbols')
+
+      -- Fuzzy find all the symbols in your current workspace.
+      map('gW', picker 'lsp_workspace_symbols', 'Open Workspace Symbols')
     end,
   })
+
+  -- Fuzzy find within the current buffer.
+  vim.keymap.set('n', '<leader>/', picker 'lines', { desc = '[/] Fuzzily search in current buffer' })
+
+  -- Grep across open buffers only.
+  vim.keymap.set('n', '<leader>s/', picker 'grep_buffers', { desc = '[S]earch [/] in Open Files' })
+
+  -- Shortcut for searching your Neovim configuration files
+  vim.keymap.set(
+    'n',
+    '<leader>sn',
+    function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end,
+    { desc = '[S]earch [N]eovim files' }
+  )
 end
 
 -- ============================================================
@@ -793,7 +824,7 @@ do
       },
       -- By default, you may press `<c-space>` to show the documentation.
       -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      documentation = { auto_show = true, auto_show_delay_ms = 500 },
       menu = {
         cmdline_position = function()
           if vim.g.ui_cmdline_pos ~= nil then

@@ -2,6 +2,9 @@ vim.pack.add { 'https://github.com/folke/sidekick.nvim' }
 
 require('sidekick').setup {
   cli = {
+    win = {
+      layout = "left"
+    },
     mux = {
       backend = 'tmux',
       enabled = true,

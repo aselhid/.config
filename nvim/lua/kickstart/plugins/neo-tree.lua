@@ -28,26 +28,19 @@ local neotree_width = 60
 
 local function equalize_content_wins()
   vim.schedule(function()
-    local wins = vim.api.nvim_tabpage_list_wins(0)
-    local content_wins = {}
-    local has_neotree = false
-    for _, win in ipairs(wins) do
-      local ft = vim.api.nvim_get_option_value('filetype', { buf = vim.api.nvim_win_get_buf(win) })
-      if ft == 'neo-tree' then
-        has_neotree = true
-      elseif ft ~= 'sidekick_terminal' then
-        table.insert(content_wins, win)
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+      if vim.api.nvim_win_is_valid(win) then
+        local buf = vim.api.nvim_win_get_buf(win)
+        local ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
+
+        if ft == 'neo-tree' then
+          vim.api.nvim_set_option_value('winfixwidth', true, { win = win })
+          vim.api.nvim_win_set_width(win, neotree_width)
+        end
       end
     end
-    if #content_wins < 2 then
-      return
-    end
-    local reserved = has_neotree and (neotree_width + 1) or 0
-    local available = vim.o.columns - reserved - (#content_wins - 1)
-    local per_win = math.floor(available / #content_wins)
-    for _, win in ipairs(content_wins) do
-      vim.api.nvim_win_set_width(win, per_win)
-    end
+
+    vim.cmd.wincmd '='
   end)
 end
 
@@ -66,6 +59,11 @@ require('neo-tree').setup {
     { event = 'neo_tree_window_after_close', handler = equalize_content_wins },
   },
   filesystem = {
+    use_libuv_file_watcher = true,
+    follow_current_file = {
+      enabled = true,
+      leave_dirs_open = false,
+    },
     window = {
       mappings = {
         ['\\'] = 'close_window',
