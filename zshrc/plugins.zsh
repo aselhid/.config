@@ -5,5 +5,4 @@
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 #
 
-bindkey -v
 eval "$(zoxide init zsh)"

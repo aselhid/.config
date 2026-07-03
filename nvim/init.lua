@@ -200,7 +200,7 @@ do
     },
   }
 
-  vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  -- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -242,6 +242,15 @@ do
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
   })
+
+  -- Cycle to the next buffer
+  vim.keymap.set('n', '<S-l>', ':bnext<CR>', { silent = true })
+
+  -- Cycle to the previous buffer
+  vim.keymap.set('n', '<S-h>', ':bprevious<CR>', { silent = true })
+
+  -- Refactor
+  vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, { desc = '[C]ode [R]ename' })
 end
 
 -- ============================================================
@@ -356,6 +365,7 @@ do
       { '<leader>a', group = '[A]I' },
       { '<leader>b', group = '[B]uffer' },
       { '<leader>n', group = '[N]oice' },
+      { '<leader>c', group = '[C]ode' },
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
   }
@@ -449,18 +459,30 @@ do
   end, { desc = 'Jump to previous git [c]hange' })
 
   -- Actions
-  vim.keymap.set('n', '<leader>gs', function()
-    diff.do_hunks(0, 'apply', { line_start = vim.fn.line '.', line_end = vim.fn.line '.' })
-  end, { desc = 'git [s]tage hunk' })
-  vim.keymap.set('n', '<leader>gr', function()
-    diff.do_hunks(0, 'reset', { line_start = vim.fn.line '.', line_end = vim.fn.line '.' })
-  end, { desc = 'git [r]eset hunk' })
-  vim.keymap.set('v', '<leader>gs', function()
-    diff.do_hunks(0, 'apply', { line_start = vim.fn.line '.', line_end = vim.fn.line 'v' })
-  end, { desc = 'git [s]tage hunk' })
-  vim.keymap.set('v', '<leader>gr', function()
-    diff.do_hunks(0, 'reset', { line_start = vim.fn.line '.', line_end = vim.fn.line 'v' })
-  end, { desc = 'git [r]eset hunk' })
+  vim.keymap.set(
+    'n',
+    '<leader>gs',
+    function() diff.do_hunks(0, 'apply', { line_start = vim.fn.line '.', line_end = vim.fn.line '.' }) end,
+    { desc = 'git [s]tage hunk' }
+  )
+  vim.keymap.set(
+    'n',
+    '<leader>gr',
+    function() diff.do_hunks(0, 'reset', { line_start = vim.fn.line '.', line_end = vim.fn.line '.' }) end,
+    { desc = 'git [r]eset hunk' }
+  )
+  vim.keymap.set(
+    'v',
+    '<leader>gs',
+    function() diff.do_hunks(0, 'apply', { line_start = vim.fn.line '.', line_end = vim.fn.line 'v' }) end,
+    { desc = 'git [s]tage hunk' }
+  )
+  vim.keymap.set(
+    'v',
+    '<leader>gr',
+    function() diff.do_hunks(0, 'reset', { line_start = vim.fn.line '.', line_end = vim.fn.line 'v' }) end,
+    { desc = 'git [r]eset hunk' }
+  )
   vim.keymap.set('n', '<leader>gS', function() diff.do_hunks(0, 'apply') end, { desc = 'git [S]tage buffer' })
   vim.keymap.set('n', '<leader>gR', function() diff.do_hunks(0, 'reset') end, { desc = 'git [R]eset buffer' })
 
@@ -543,12 +565,7 @@ do
   vim.keymap.set('n', '<leader>s/', picker 'grep_buffers', { desc = '[S]earch [/] in Open Files' })
 
   -- Shortcut for searching your Neovim configuration files
-  vim.keymap.set(
-    'n',
-    '<leader>sn',
-    function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end,
-    { desc = '[S]earch [N]eovim files' }
-  )
+  vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
 end
 
 -- ============================================================
@@ -704,10 +721,10 @@ do
   -- To check status: :Mason   (press g? for help)
   require('mason-lspconfig').setup {
     ensure_installed = {
-      'lua_ls',  -- Lua
-      'tsgo',    -- TypeScript / JavaScript (Go-rewrite TS server)
-      'gopls',   -- Go
-      'pyright', -- Python
+      'lua_ls', -- Lua
+      'tsgo', -- TypeScript / JavaScript (Go-rewrite TS server)
+      -- 'gopls',   -- Go
+      -- 'pyright', -- Python
     },
   }
 
@@ -730,21 +747,27 @@ do
     notify_on_error = false,
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
-      local enabled_filetypes = {
-        -- lua = true,
-        -- python = true,
-      }
-      if enabled_filetypes[vim.bo[bufnr].filetype] then
-        return { timeout_ms = 500 }
-      else
-        return nil
-      end
+      -- local enabled_filetypes = {
+      --   lua = true,
+      --   -- python = true,
+      --   typescriptreact = true,
+      --   typescript = true,
+      -- }
+      -- if enabled_filetypes[vim.bo[bufnr].filetype] then
+      --   return { timeout_ms = 500 }
+      -- else
+      --   return nil
+      -- end
+      return { timeout_ms = 500 }
     end,
     default_format_opts = {
       lsp_format = 'fallback', -- Use external formatters if configured below, otherwise use LSP formatting. Set to `false` to disable LSP formatting entirely.
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
+      javascript = { 'oxfmt' },
+      typescript = { 'oxfmt' },
+      typescriptreact = { 'oxfmt' },
       -- rust = { 'rustfmt' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
@@ -803,6 +826,8 @@ do
       -- See `:help blink-cmp-config-keymap` for defining your own keymap
       preset = 'default',
 
+      ['<CR>'] = { 'accept', 'fallback' },
+
       -- Tab/S-Tab cycle through completion items without accepting.
       -- Use <C-y> to accept the highlighted item (default preset).
       ['<Tab>'] = { 'select_next', 'fallback' },
@@ -853,9 +878,7 @@ do
           },
         },
         menu = {
-          auto_show = function()
-            return vim.fn.getcmdtype() == ':'
-          end,
+          auto_show = function() return vim.fn.getcmdtype() == ':' end,
         },
       },
     },
@@ -954,10 +977,10 @@ do
   --
   -- require 'kickstart.plugins.debug'
   -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.lint'
   require 'kickstart.plugins.autopairs'
   require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
